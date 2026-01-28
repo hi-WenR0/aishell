@@ -1,0 +1,46 @@
+{
+  "name": "aishell",
+  "version": "1.0.0",
+  "description": "AI-powered CLI tool that generates shell commands from natural language",
+  "main": "dist/index.js",
+  "bin": {
+    "aishell": "./dist/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.tsx",
+    "init": "tsx src/index.tsx init",
+    "start": "node dist/index.js",
+    "watch": "tsc --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "cli",
+    "ai",
+    "shell",
+    "command",
+    "anthropic",
+    "claude"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "openai": "^4.56.0",
+    "ink": "^5.1.0",
+    "ink-spinner": "^5.0.0",
+    "react": "^18.3.1",
+    "commander": "^12.0.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.3.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
