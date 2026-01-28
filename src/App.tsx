@@ -75,10 +75,8 @@ export const App: React.FC<AppProps> = ({
         setProviderName(currentProvider.name);
         setState("loading");
 
-        const commandResult = await currentProvider.generateCommand(
-          task,
-          verbose,
-        );
+        const { result: commandResult, tokenUsage } =
+          await currentProvider.generateCommand(task, verbose);
         setResult(commandResult);
         setState("confirm");
 
@@ -89,6 +87,7 @@ export const App: React.FC<AppProps> = ({
           provider: currentProvider.name,
           executed: false,
           explanation: commandResult.explanation?.description,
+          tokenUsage,
         };
       } catch (err) {
         setError(err instanceof Error ? err.message : "未知错误");

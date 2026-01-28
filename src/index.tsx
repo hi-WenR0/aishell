@@ -10,6 +10,7 @@ import { App } from "./App.js";
 import { runInit } from "./init.js";
 import { displayConfigInfo } from "./config.js";
 import { HistoryViewer } from "./components/HistoryViewer.js";
+import { TokenStatsViewer } from "./components/TokenStatsViewer.js";
 
 // 加载全局和本地配置
 const globalEnvPath = path.join(os.homedir(), ".aishell", ".env");
@@ -55,6 +56,18 @@ program
         searchKeyword: options.search,
       }),
     );
+
+    waitUntilExit().catch(() => {
+      process.exit(1);
+    });
+  });
+
+// 添加 stats 命令
+program
+  .command("stats")
+  .description("查看 AI Token 使用统计")
+  .action(() => {
+    const { waitUntilExit } = render(React.createElement(TokenStatsViewer));
 
     waitUntilExit().catch(() => {
       process.exit(1);

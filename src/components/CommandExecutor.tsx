@@ -56,7 +56,7 @@ export const CommandExecutor: React.FC<CommandExecutorProps> = ({
       if (human && provider && collectedOutput.length > 0) {
         setStatus("summarizing");
         try {
-          const summaryText = await provider.summarizeOutput(
+          const { summary: summaryText } = await provider.summarizeOutput(
             command,
             outputText,
           );

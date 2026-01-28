@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { AIProvider } from '../types/provider.js';
-import type { CommandResult } from '../types/index.js';
+import type { AIProvider, CommandResultWithUsage, SummarizeResultWithUsage } from '../types/provider.js';
 import { getSystemPrompt, getUserPrompt, parseResponse, getSummarizeSystemPrompt, getSummarizeUserPrompt } from './base.js';
 
 export class ClaudeProvider implements AIProvider {
@@ -13,7 +12,7 @@ export class ClaudeProvider implements AIProvider {
         this.model = model || 'claude-sonnet-4-20250514';
     }
 
-    async generateCommand(task: string, verbose: boolean): Promise<CommandResult> {
+    async generateCommand(task: string, verbose: boolean): Promise<CommandResultWithUsage> {
         const message = await this.client.messages.create({
             model: this.model,
             max_tokens: 1024,
@@ -31,10 +30,17 @@ export class ClaudeProvider implements AIProvider {
             throw new Error('Unexpected response type from API');
         }
 
-        return parseResponse(content.text);
+        return {
+            result: parseResponse(content.text),
+            tokenUsage: {
+                inputTokens: message.usage.input_tokens,
+                outputTokens: message.usage.output_tokens,
+                totalTokens: message.usage.input_tokens + message.usage.output_tokens,
+            },
+        };
     }
 
-    async summarizeOutput(command: string, output: string): Promise<string> {
+    async summarizeOutput(command: string, output: string): Promise<SummarizeResultWithUsage> {
         const message = await this.client.messages.create({
             model: this.model,
             max_tokens: 1024,
@@ -52,6 +58,13 @@ export class ClaudeProvider implements AIProvider {
             throw new Error('Unexpected response type from API');
         }
 
-        return content.text;
+        return {
+            summary: content.text,
+            tokenUsage: {
+                inputTokens: message.usage.input_tokens,
+                outputTokens: message.usage.output_tokens,
+                totalTokens: message.usage.input_tokens + message.usage.output_tokens,
+            },
+        };
     }
 }

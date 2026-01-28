@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
-import type { AIProvider } from '../types/provider.js';
-import type { CommandResult } from '../types/index.js';
+import type { AIProvider, CommandResultWithUsage, SummarizeResultWithUsage } from '../types/provider.js';
 import { getSystemPrompt, getUserPrompt, parseResponse, getSummarizeSystemPrompt, getSummarizeUserPrompt } from './base.js';
 
 export class KimiProvider implements AIProvider {
@@ -16,7 +15,7 @@ export class KimiProvider implements AIProvider {
         this.model = model || 'kimi-k2-0711-preview';
     }
 
-    async generateCommand(task: string, verbose: boolean): Promise<CommandResult> {
+    async generateCommand(task: string, verbose: boolean): Promise<CommandResultWithUsage> {
         const response = await this.client.chat.completions.create({
             model: this.model,
             max_tokens: 1024,
@@ -37,10 +36,17 @@ export class KimiProvider implements AIProvider {
             throw new Error('No response from API');
         }
 
-        return parseResponse(content);
+        return {
+            result: parseResponse(content),
+            tokenUsage: response.usage ? {
+                inputTokens: response.usage.prompt_tokens,
+                outputTokens: response.usage.completion_tokens,
+                totalTokens: response.usage.total_tokens,
+            } : undefined,
+        };
     }
 
-    async summarizeOutput(command: string, output: string): Promise<string> {
+    async summarizeOutput(command: string, output: string): Promise<SummarizeResultWithUsage> {
         const response = await this.client.chat.completions.create({
             model: this.model,
             max_tokens: 1024,
@@ -61,6 +67,13 @@ export class KimiProvider implements AIProvider {
             throw new Error('No response from API');
         }
 
-        return content;
+        return {
+            summary: content,
+            tokenUsage: response.usage ? {
+                inputTokens: response.usage.prompt_tokens,
+                outputTokens: response.usage.completion_tokens,
+                totalTokens: response.usage.total_tokens,
+            } : undefined,
+        };
     }
 }
