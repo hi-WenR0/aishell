@@ -8,12 +8,14 @@ interface CommandExecutorProps {
   command: string;
   human?: boolean;
   provider?: AIProvider;
+  onComplete?: (exitCode: number, output: string) => void;
 }
 
 export const CommandExecutor: React.FC<CommandExecutorProps> = ({
   command,
   human = false,
   provider,
+  onComplete,
 }) => {
   const { exit } = useApp();
   const [status, setStatus] = useState<
@@ -46,11 +48,14 @@ export const CommandExecutor: React.FC<CommandExecutorProps> = ({
     child.on("close", async (code) => {
       setExitCode(code);
 
+      // 调用完成回调，保存历史
+      const outputText = collectedOutput.join("\n");
+      onComplete?.(code ?? 1, outputText);
+
       // 如果启用了 human 模式且有 provider，进行 AI 总结
       if (human && provider && collectedOutput.length > 0) {
         setStatus("summarizing");
         try {
-          const outputText = collectedOutput.join("\n");
           const summaryText = await provider.summarizeOutput(
             command,
             outputText,
@@ -75,6 +80,7 @@ export const CommandExecutor: React.FC<CommandExecutorProps> = ({
     child.on("error", (err) => {
       setOutput((prev) => [...prev, `错误: ${err.message}`]);
       setStatus("error");
+      onComplete?.(1, `错误: ${err.message}`);
       setTimeout(() => exit(), 500);
     });
 

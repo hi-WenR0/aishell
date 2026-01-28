@@ -5,3 +5,4 @@ export { ModelList } from './ModelList.js';
 export { Header } from './Header.js';
 export { ConfirmPrompt } from './ConfirmPrompt.js';
 export { CommandExecutor } from './CommandExecutor.js';
+export { HistoryViewer } from './HistoryViewer.js';

@@ -15,3 +15,5 @@ export interface CommandResult {
         commonUsages?: Array<string | UsageItem>;
     };
 }
+
+export * from './history.js';

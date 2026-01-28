@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, useApp } from "ink";
 import {
   Header,
@@ -14,9 +14,11 @@ import {
   getDefaultProvider,
   getAvailableProviders,
 } from "./providers/index.js";
+import { addHistoryItem } from "./history.js";
 import type { ProviderType } from "./types/provider.js";
 import type { CommandResult } from "./types/index.js";
 import type { AIProvider } from "./types/provider.js";
+import type { HistoryItem } from "./types/history.js";
 
 type AppState = "loading" | "confirm" | "executing" | "done" | "error";
 
@@ -41,6 +43,7 @@ export const App: React.FC<AppProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [providerName, setProviderName] = useState("");
   const [provider, setProvider] = useState<AIProvider | null>(null);
+  const historyItemRef = useRef<Partial<HistoryItem> | null>(null);
 
   useEffect(() => {
     const run = async () => {
@@ -78,6 +81,15 @@ export const App: React.FC<AppProps> = ({
         );
         setResult(commandResult);
         setState("confirm");
+
+        // 保存历史记录（初始状态，稍后可更新执行结果）
+        historyItemRef.current = {
+          task,
+          command: commandResult.command,
+          provider: currentProvider.name,
+          executed: false,
+          explanation: commandResult.explanation?.description,
+        };
       } catch (err) {
         setError(err instanceof Error ? err.message : "未知错误");
         setState("error");
@@ -90,10 +102,37 @@ export const App: React.FC<AppProps> = ({
 
   const handleConfirm = () => {
     setState("executing");
+    // 标记为已执行
+    if (historyItemRef.current) {
+      historyItemRef.current.executed = true;
+    }
   };
 
   const handleCancel = () => {
+    // 保存未执行的历史记录
+    if (historyItemRef.current) {
+      addHistoryItem(
+        historyItemRef.current as Omit<
+          import("./types/history.js").HistoryItem,
+          "id" | "timestamp"
+        >,
+      );
+    }
     exit();
+  };
+
+  // 处理命令执行完成
+  const handleExecutionComplete = (exitCode: number, output: string) => {
+    if (historyItemRef.current) {
+      historyItemRef.current.exitCode = exitCode;
+      historyItemRef.current.output = output;
+      addHistoryItem(
+        historyItemRef.current as Omit<
+          import("./types/history.js").HistoryItem,
+          "id" | "timestamp"
+        >,
+      );
+    }
   };
 
   // 列出可用模型模式
@@ -132,6 +171,7 @@ export const App: React.FC<AppProps> = ({
           command={result.command}
           human={human}
           provider={provider}
+          onComplete={handleExecutionComplete}
         />
       )}
     </Box>

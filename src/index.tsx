@@ -9,6 +9,7 @@ import * as os from "os";
 import { App } from "./App.js";
 import { runInit } from "./init.js";
 import { displayConfigInfo } from "./config.js";
+import { HistoryViewer } from "./components/HistoryViewer.js";
 
 // 加载全局和本地配置
 const globalEnvPath = path.join(os.homedir(), ".aishell", ".env");
@@ -41,6 +42,23 @@ program
   .description("显示当前配置信息")
   .action(() => {
     displayConfigInfo();
+  });
+
+// 添加 history 命令
+program
+  .command("history")
+  .description("查看历史命令记录")
+  .option("-s, --search <keyword>", "搜索历史记录")
+  .action((options: { search?: string }) => {
+    const { waitUntilExit } = render(
+      React.createElement(HistoryViewer, {
+        searchKeyword: options.search,
+      }),
+    );
+
+    waitUntilExit().catch(() => {
+      process.exit(1);
+    });
   });
 
 program
